@@ -1,60 +1,93 @@
-import React,{useState} from 'react';
+import React, { useState } from 'react';
 import './App.css';
 
 function App() {
 
-  const [value , setValue] = useState(null)
+  const [value, setValue] = useState(null)
   const [numbersArr, setNumbersArr] = useState([])
-  console.log("::numbersArr...",numbersArr);
-
+  const [gridLayout, setGridLayout] = useState(value)
+  const [firstIndex, setFirstIndex] = useState(null);
+  const [lastIndex, setLastIndex] = useState(null);
+  const [isSolved, setIsSolved] = useState(false);
+  
   const createArray = () => {
+    setGridLayout(value)
+    const length = value * value;
     const numbersArray = [];
-    const length =  value * value;
-    Array.apply(null, { length: length }).map((num , index) => {
+    Array.apply(null, { length: length }).map((num, index) => {
       numbersArray.push(parseInt(index) + 1)
     }
     )
-    setNumbersArr(numbersArray.sort(function(){ return Math.random() - 0.5}))
+    setNumbersArr(numbersArray.sort(function () { return Math.random() - 0.5 }))
   }
 
-  const handleChange = () =>{
-    createArray()
+  const handleDragStart = (index) => {
+    setFirstIndex(index)
+  };
+
+  const handleDragEnter = (index) => {
+    setLastIndex(index)
+  };
+  
+  const handleDrop = () => {
+    if(firstIndex >= 0 && lastIndex >= 0) {
+      const updateNumbersArr = [...numbersArr];
+      const tmp_value = updateNumbersArr[firstIndex]
+      updateNumbersArr[firstIndex] = updateNumbersArr[lastIndex];
+      updateNumbersArr[lastIndex] = tmp_value;
+      setNumbersArr(updateNumbersArr)
+      isSorted() ? setIsSolved(true) : setIsSolved(false) 
+    }
+  };
+
+  const isSorted = () => {
+    //logic to verify is array sorted
+   //return true/false
+   for (let i = 0; i < numbersArr.length; i++) {
+    if (i > 0 && numbersArr[i - 1] > numbersArr[i]) {
+      return true;
+    }
+ }
+ return false;
   }
+
+
 
   return (
     <div className="App">
-     <p>Alpha Task</p>
-     <div>
-       <input
-       type='number'
-       placeholder='Please Enter Number'
-       value={value}
-       onChange={e =>setValue(e.target.value)}
-       />
-       <button onClick={handleChange}>Submit</button>
-       {
-         value ? (
-           <div style={{height: '30px', width: '30px', display:'flex', backgroundColor: 'gray'}}>
-             {
-               Array.apply(null, { length: value }).map((r) => (
-                 <>
-                  <div key={r}>
-                    {
-                      Array.apply(null, { length: value }).map((c) => (
-                        <div key={c} style={{height: '30px', width: '30px', backgroundColor: 'gray'}}>
-                          {numbersArr}
-                        </div>
-                      ))
-                    }
-                  </div>
-                  <br />
-                </>
-              ))
-             }
-           </div>
-         ): null
-       }
-     </div>
+      {
+        isSolved ? 'Success :)' : null
+      }
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+        <input
+          style={{ padding: '10px', marginTop: '10px' }}
+          type='number'
+          placeholder='Please Enter Number'
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+        <button onClick={createArray} style={{ width: '12%', backgroundColor: 'green', color: 'white', padding: '11px', marginTop: '10px', marginLeft: '16px', border: 'none', borderRadius: '6px' }}>Submit</button>
+      </div>
+      <div className="grid-container"
+
+        style={{ display: 'grid', gridTemplateColumns: `repeat(${gridLayout}, auto)` }}
+      >
+        {
+          numbersArr.map((item, index) => (
+            <div draggable={true}
+              key={index}
+              onDragStart={() => handleDragStart(index)}
+              onDragEnter={() => handleDragEnter(index)}
+              onDrop={(e) => handleDrop()}
+              onDragOver={(e) => e.preventDefault()}
+              className="grid-item">
+              {item}
+            </div>
+          ))
+        }
+
+      </div>
+
     </div>
   );
 }
